@@ -1,5 +1,6 @@
 import fs from "fs";
-import { getAllPosts, createPost } from "../models/postsModel.js";
+import { getAllPosts, createPost, updatePostInDB } from "../models/postsModel.js";
+import gerarDescricaoComGemini from "../services/geminiServices.js";
 
 // Função para listar todos os posts
 export async function listPosts(req, res) {
@@ -50,6 +51,31 @@ export async function uploadImage(req, res) {
     fs.renameSync(req.file.path, imageUpdated);
 
     // Envia o post criado como resposta JSON com status 200 (OK)
+    res.status(200).json(postCreated);
+  } catch (error) {
+    // Caso ocorra um erro, imprime a mensagem de erro no console
+    console.error(error.message);
+
+    // Envia uma resposta de erro com status 500 (Internal Server Error)
+    res.status(500).json({ Erro: "Falha na requisição" });
+  }
+}
+
+export async function updatePost(req, res) {
+  const id = req.params.id;
+  const urlImage = `http://localhost:3000/${id}.png`;
+  
+  try {
+    const imageBuffer = fs.readFileSync(`uploads/${id}.png`);
+    const description = await gerarDescricaoComGemini(imageBuffer);
+
+    const post = {
+      descricao: description,
+      url: urlImage,
+      alt: req.body.alt,
+    };
+
+    const postCreated = await updatePostInDB(id, post);
     res.status(200).json(postCreated);
   } catch (error) {
     // Caso ocorra um erro, imprime a mensagem de erro no console

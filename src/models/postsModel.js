@@ -1,3 +1,5 @@
+import 'dotenv/config';
+import { ObjectId } from "mongodb";
 import conectarAoBanco from "../config/dbconfig.js";
 
 // Conecta ao banco de dados MongoDB usando a string de conexão fornecida pelo ambiente
@@ -22,4 +24,17 @@ export async function createPost(newPost) {
 
   // Insere o novo post na coleção e retorna o resultado da operação
   return collection.insertOne(newPost);
+}
+
+export async function updatePostInDB(id, newPost) {
+  // Conecta ao banco de dados "imersao-instabyte"
+  const db = connection.db("imersao-instabyte");
+
+  // Seleciona a coleção "posts"
+  const collection = db.collection("posts");
+
+  const objectID = ObjectId.createFromHexString(id);
+
+  // Atualiza o novo post na coleção e retorna o resultado da operação
+  return collection.updateOne({_id: new ObjectId(objectID)}, {$set: newPost});
 }
